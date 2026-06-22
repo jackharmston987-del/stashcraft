@@ -1,0 +1,184 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const StashCraftApp());
+}
+
+class StashCraftApp extends StatelessWidget {
+  const StashCraftApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'StashCraft',
+      theme: ThemeData(
+        primarySwatch: Colors.purple,
+        useMaterial3: true,
+      ),
+      home: const StashHome(),
+    );
+  }
+}
+
+class YarnItem {
+  final String name;
+  final String weight;
+  final int skeins;
+
+  YarnItem({
+    required this.name,
+    required this.weight,
+    required this.skeins,
+  });
+}
+
+class StashHome extends StatefulWidget {
+  const StashHome({super.key});
+
+  @override
+  State<StashHome> createState() => _StashHomeState();
+}
+
+class _StashHomeState extends State<StashHome> {
+  List<YarnItem> stash = [];
+
+  final nameController = TextEditingController();
+  String selectedWeight = "DK";
+  int skeins = 1;
+
+  void addYarn() {
+    setState(() {
+      stash.add(
+        YarnItem(
+          name: nameController.text,
+          weight: selectedWeight,
+          skeins: skeins,
+        ),
+      );
+    });
+
+    nameController.clear();
+    skeins = 1;
+  }
+
+  List<String> getProjects() {
+    bool hasDK = stash.any((y) => y.weight == "DK" && y.skeins >= 2);
+    bool hasChunky = stash.any((y) => y.weight == "Chunky");
+
+    List<String> projects = [];
+
+    if (hasDK) {
+      projects.add("Granny Square Blanket (DK yarn)");
+      projects.add("Summer Tote Bag (DK yarn)");
+    }
+
+    if (hasChunky) {
+      projects.add("Chunky Scarf");
+      projects.add("Beanie Hat");
+    }
+
+    projects.add("Simple Dishcloth (any yarn)");
+
+    return projects;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("🧶 StashCraft"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Add Yarn",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: "Yarn name"),
+            ),
+
+            const SizedBox(height: 8),
+
+            DropdownButton<String>(
+              value: selectedWeight,
+              items: ["Lace", "DK", "Aran", "Chunky"]
+                  .map((w) => DropdownMenuItem(
+                        value: w,
+                        child: Text(w),
+                      ))
+                  .toList(),
+              onChanged: (val) {
+                setState(() {
+                  selectedWeight = val!;
+                });
+              },
+            ),
+
+            Row(
+              children: [
+                const Text("Skeins: "),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      if (skeins > 1) skeins--;
+                    });
+                  },
+                  icon: const Icon(Icons.remove),
+                ),
+                Text("$skeins"),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      skeins++;
+                    });
+                  },
+                  icon: const Icon(Icons.add),
+                ),
+              ],
+            ),
+
+            ElevatedButton(
+              onPressed: addYarn,
+              child: const Text("Add to Stash"),
+            ),
+
+            const Divider(),
+
+            const Text(
+              "My Stash",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+
+            Expanded(
+              child: ListView(
+                children: stash
+                    .map(
+                      (y) => ListTile(
+                        title: Text(y.name),
+                        subtitle: Text("${y.weight} • ${y.skeins} skeins"),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+
+            const Divider(),
+
+            const Text(
+              "What You Can Make",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+
+            ...getProjects().map((p) => Text("🧶 $p")),
+          ],
+        ),
+      ),
+    );
+  }
+}
